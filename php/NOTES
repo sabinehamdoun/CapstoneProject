@@ -1,0 +1,64 @@
+<section class="section-sm">
+		<div class="container">
+			<div class="row">
+				<div class="col-md-12">
+					<div class="search-result bg-gray">
+
+						<?php
+						require_once '../vendor/autoload.php';
+						$mongo = new MongoDB\Client;
+						$db = $mongo->Classimax;
+						$collection = $db->itemsList;
+						$result = $collection->find(['category' => 'books']);
+						$items = iterator_to_array($result);
+						?>
+						<h2>Results For "Books"
+						</h2>
+						<nav>
+							<ul>
+								<li><a href="#" id="sort-by-price">Sort by Price</a></li>
+								<li><a href="#" id="sort-by-date">Sort by Date</a></li>
+							</ul>
+						</nav>
+						<div id="items-container"></div>
+						<script>
+							var items = <?php echo json_encode($items) ?>;
+							//render the initial items in the UI
+							updateUI(items);
+							document.getElementById("sort-by-price").addEventListener("click", function() {
+								items.sort(function(a, b) {
+									return parseFloat(a.price) - parseFloat(b.price);
+								});
+								updateUI(items);
+							});
+
+							document.getElementById("sort-by-date").addEventListener("click", function() {
+								var moment = require('moment');
+								items.sort(function(a, b) {
+									var dateA = moment(a.date, "MMMM DD, YYYY");
+									var dateB = moment(b.date, "MMMM DD, YYYY");
+									return dateB.diff(dateA);
+								});
+								updateUI(items);
+							});
+
+
+
+							function updateUI(items) {
+								//clear the current items from the UI
+								document.getElementById("items-container").innerHTML = "";
+								//iterate over the items array and re-render them in the UI
+								for (let i = 0; i < items.length; i++) {
+									let item = items[i];
+									let itemElem = document.createElement("div");
+									itemElem.innerHTML = "<div class='product-item bg-light'><div class='card'><div class='thumb-content'><div class='price'> ${item.price} </div> <a href=''><img class='card-img-top img-fluid' src='data:image/jpeg;base64,${item.image}' alt='Card image cap'></a></div><div class='card-body'><h4 class='card-title'><a href=''>${item.title}</a></h4></div></div></div>";
+									document.getElementById("items-container").appendChild(itemElem);
+								}
+							}
+						</script>
+					</div>
+				</div>
+			</div>
+		</div>
+
+	</section>
